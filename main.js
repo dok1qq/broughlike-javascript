@@ -2,6 +2,7 @@ import {Game} from "./js/game.js";
 import {BaseSettings} from "./js/base-settings.js";
 import {Tile} from "./js/tile.js";
 import {Map} from "./js/map.js";
+import {Util} from "./js/util.js";
 
 class App {
     constructor(game, settings) {
@@ -25,9 +26,11 @@ class App {
 
 
 const settings = new BaseSettings();
+const util = new Util();
 
-const map = new Map(settings);
+const map = new Map(settings, util);
 const game = new Game(settings, map);
-const tile = new Tile({x: 0, y: 0, sprite: 0, passable: 0, game});
+
+const tile = new Tile(0, 0, 0, 0);
 
 const app = new App(game, settings);

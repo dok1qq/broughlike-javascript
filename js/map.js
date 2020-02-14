@@ -2,8 +2,10 @@ import {Wall} from "./tile.js";
 import {Floor} from "./tile.js";
 
 export class Map {
-    constructor(settings) {
+    constructor(settings, util) {
         this.settings = settings;
+        this.util = util;
+
         this.tiles = [];
 
         this.generateLevel();
@@ -17,7 +19,7 @@ export class Map {
         for (let i = 0; i < this.settings.numTiles; i++) {
             this.tiles[i] = [];
             for (let j = 0; j < this.settings.numTiles; j++) {
-                this.tiles[i][j] = (Math.random() < 0.3 || !this.inBounds(i,j))
+                this.tiles[i][j] = (Math.random() < 0.3 || !this.inBounds(i, j))
                     ? new Wall(i, j)
                     : new Floor(i, j);
             }
@@ -29,6 +31,18 @@ export class Map {
     }
 
     getTile(x, y) {
-        return this.inBounds(x, y) ? this.tiles[x][y] : new Wall(x, y, this.game);
+        return this.inBounds(x, y) ? this.tiles[x][y] : new Wall(x, y);
+    }
+
+
+    randomPassableTile() {
+        let tile;
+        this.util.tryTo('get random passable tile', () => {
+            let x = this.util.randomRange(0, this.settings.numTiles - 1);
+            let y = this.util.randomRange(0, this.settings.numTiles - 1);
+            tile = this.getTile(x, y);
+            return tile.passable && !tile.monster;
+        });
+        return tile;
     }
 }

@@ -1,13 +1,9 @@
 export class Tile {
-    constructor({x, y, sprite, passable}) {
+    constructor(x, y, sprite, passable) {
         this.x = x;
         this.y = y;
         this.sprite = sprite;
         this.passable = passable;
-    }
-
-    draw() {
-        // this.game.drawSprite(this.sprite, this.x, this.y);
     }
 
     getSprite() {
@@ -25,12 +21,12 @@ export class Tile {
 
 export class Floor extends Tile {
     constructor(x, y) {
-        super({x, y, sprite: 2, passable: true});
+        super(x, y, 2, true);
     }
 }
 
 export class Wall extends Tile {
     constructor(x, y) {
-        super({x, y, sprite: 3, passable: false});
+        super(x, y, 3, false);
     }
 }
