@@ -1,48 +1,56 @@
-import {Wall} from "./tile.js";
-import {Floor} from "./tile.js";
+import {Floor, Wall} from "./texture.js";
 
 export class Map {
     constructor(settings, util) {
-        this.settings = settings;
         this.util = util;
 
-        this.tiles = [];
+        const textures = this.initMap(settings);
 
-        this.generateLevel();
+        // Methods
+        this.getTextures = () => textures;
+        this.getTextureByPosition = (x, y) => textures.find(t => t.matchWithPosition(x, y));
     }
 
-    generateLevel() {
-        this.generateTiles();
-    }
-
-    generateTiles() {
-        for (let i = 0; i < this.settings.numTiles; i++) {
-            this.tiles[i] = [];
-            for (let j = 0; j < this.settings.numTiles; j++) {
-                this.tiles[i][j] = (Math.random() < 0.3 || !this.inBounds(i, j))
-                    ? new Wall(i, j)
-                    : new Floor(i, j);
+    initMap(settings) {
+        const textures = [];
+        const count = settings.getCount();
+        for (let i = 0; i < count; i++) {
+            for (let j = 0; j < count; j++) {
+                const texture = this.initTexture(i, j, count);
+                textures.push(texture);
             }
         }
+
+        return textures;
     }
 
-    inBounds(x, y) {
-        return x > 0 && y > 0 && x < this.settings.numTiles - 1 && y < this.settings.numTiles - 1;
+    initTexture(x, y, count) {
+        const coords = { x, y };
+        // TODO: decide
+        const isWall = Math.random() < 0.3 || !this.inBounds(x, y, count);
+        return isWall ? new Wall(coords) : new Floor(coords);
     }
 
-    getTile(x, y) {
-        return this.inBounds(x, y) ? this.tiles[x][y] : new Wall(x, y);
+    inBounds(x, y, count) {
+        return x > 0 && y > 0 && x < count - 1 && y < count - 1;
     }
 
 
-    randomPassableTile() {
+    // todo: edit
+   /* getTile(x, y) {
+        return this.inBounds(x, y) ? this.tiles[x][y] : new Wall({ x, y });
+    }*/
+
+
+    /*randomPassableTile() {
         let tile;
         this.util.tryTo('get random passable tile', () => {
             let x = this.util.randomRange(0, this.settings.numTiles - 1);
             let y = this.util.randomRange(0, this.settings.numTiles - 1);
             tile = this.getTile(x, y);
-            return tile.passable && !tile.monster;
+            // return tile.getPassable() && !tile.monster;
+            return tile.getPassable();
         });
         return tile;
-    }
+    }*/
 }

@@ -1,50 +1,79 @@
+import {Map} from "./map.js";
+import {Renderer} from "./renderer.js";
+import {SpriteSheet} from "./sprite-sheet.js";
+import {Hero} from "./texture.js";
+
 export class Game {
-    constructor(settings, map) {
-        this.settings = settings;
-        this.map = map;
-        this.setCanvas();
+    constructor(settings, path) {
+        const spriteSheet = new SpriteSheet(path, 16);
+
+        this.map = new Map(settings, null, spriteSheet);
+        this.hero = new Hero({x: 0, y: 0});
+        this.renderer = new Renderer(settings, spriteSheet);
+
         this.draw();
     }
 
-    setCanvas() {
-        this.canvas = document.querySelector("canvas");
-        this.ctx = this.canvas.getContext("2d");
-        this.canvas.width = this.settings.tileSize * (this.settings.numTiles + this.settings.uiWidth);
-        this.canvas.height = this.settings.tileSize * this.settings.numTiles;
-        this.canvas.style.width = this.canvas.width + 'px';
-        this.canvas.style.height = this.canvas.height + 'px';
-        this.ctx.imageSmoothingEnabled = false;
-    }
-
-    drawSprite(sprite, x, y) {
-        const settings = this.settings;
-        this.ctx.drawImage(
-            settings.spritesheet,
-            sprite * 16,
-            0,
-            16,
-            16,
-            x * settings.tileSize,
-            y * settings.tileSize,
-            settings.tileSize,
-            settings.tileSize
-        )
-    }
-
     draw() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.renderer.clear();
 
-        for (let i = 0; i < this.settings.numTiles; i++) {
-            for (let j = 0; j < this.settings.numTiles; j++) {
-                const tile = this.map.getTile(i, j);
-                this.drawTile(tile);
+        const tiles = this.map.getTextures();
+        const tilesLength = tiles.length;
+        for (let i = 0; i < tilesLength; i++) {
+            this.renderer.draw(tiles[i]);
+        }
+
+        // Draw player
+        this.renderer.draw(this.hero);
+    }
+
+    update(key) {
+
+        const isUp = key === 'w';
+        const isDown = key === 's';
+        const isLeft = key === 'a';
+        const isRight = key === 'd';
+
+        const currentPosition = {
+            x: this.hero.getX(),
+            y: this.hero.getY(),
+        };
+
+        if (isUp) {
+            const nextX = currentPosition.x;
+            const nextY = this.hero.getY() - 1;
+            if (this.canMoveToNextPosition(nextX, nextY)) {
+                this.hero.setY(nextY);
             }
         }
 
-        this.drawSprite(0, this.settings.x, this.settings.y)
+        if (isDown) {
+            const nextX = currentPosition.x;
+            const nextY = this.hero.getY() + 1;
+            if (this.canMoveToNextPosition(nextX, nextY)) {
+                this.hero.setY(nextY);
+            }
+        }
+
+        if (isLeft) {
+            const nextX = this.hero.getX() - 1;
+            const nextY = currentPosition.y;
+            if (this.canMoveToNextPosition(nextX, nextY)) {
+                this.hero.setX(nextX);
+            }
+        }
+
+        if (isRight) {
+            const nextX = this.hero.getX() + 1;
+            const nextY = currentPosition.y;
+            if (this.canMoveToNextPosition(nextX, nextY)) {
+                this.hero.setX(nextX);
+            }
+        }
     }
 
-    drawTile(tile) {
-        this.drawSprite(tile.getSprite(), tile.getX(), tile.getY());
+    canMoveToNextPosition(x, y) {
+        const texture = this.map.getTextureByPosition(x, y);
+        return texture && texture.canPass() || false;
     }
 }
