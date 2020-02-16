@@ -1,16 +1,42 @@
 import {Map} from "./map.js";
 import {Renderer} from "./renderer.js";
 import {SpriteSheet} from "./sprite-sheet.js";
-import {Hero} from "./texture.js";
+import {Bird, Hero} from "./monster.js";
 
 export class Game {
     constructor(settings, path) {
         const spriteSheet = new SpriteSheet(path, 16);
 
-        this.map = new Map(settings, null, spriteSheet);
-        this.hero = new Hero({x: 0, y: 0});
-        this.renderer = new Renderer(settings, spriteSheet);
+        // Init map
+        this.map = new Map(settings);
 
+        // Init hero
+        const startTexture = this.map.randomPassableTexture();
+        this.hero = new Hero(startTexture);
+
+        // Init monsters
+        // TODO: number depend from level
+        this.monsters = [];
+        const birdPosition = this.map.randomPassableTexture();
+
+        const bird = new Bird(birdPosition, this.hero);
+        this.monsters.push(bird);
+
+        /*setInterval(() => {
+            const bird = this.monsters[0];
+            const neighbors = this.map.getNeighbors(bird.getCurrentTile());
+            bird.update(neighbors);
+            this.draw();
+        }, 1000);*/
+
+
+        // Init other stuff
+
+
+
+
+        // Render things
+        this.renderer = new Renderer(settings, spriteSheet);
         this.draw();
     }
 
@@ -21,6 +47,11 @@ export class Game {
         const tilesLength = tiles.length;
         for (let i = 0; i < tilesLength; i++) {
             this.renderer.draw(tiles[i]);
+        }
+
+        const monstersLength = this.monsters.length;
+        for (let i = 0; i < monstersLength; i++) {
+            this.renderer.draw(this.monsters[i]);
         }
 
         // Draw player
@@ -40,40 +71,37 @@ export class Game {
         };
 
         if (isUp) {
-            const nextX = currentPosition.x;
-            const nextY = this.hero.getY() - 1;
-            if (this.canMoveToNextPosition(nextX, nextY)) {
-                this.hero.setY(nextY);
-            }
+            this.updateHeroPosition(currentPosition.x, this.hero.getY() - 1);
         }
 
         if (isDown) {
-            const nextX = currentPosition.x;
-            const nextY = this.hero.getY() + 1;
-            if (this.canMoveToNextPosition(nextX, nextY)) {
-                this.hero.setY(nextY);
-            }
+            this.updateHeroPosition(currentPosition.x, this.hero.getY() + 1);
         }
 
         if (isLeft) {
-            const nextX = this.hero.getX() - 1;
-            const nextY = currentPosition.y;
-            if (this.canMoveToNextPosition(nextX, nextY)) {
-                this.hero.setX(nextX);
-            }
+            this.updateHeroPosition(this.hero.getX() - 1, currentPosition.y);
         }
 
         if (isRight) {
-            const nextX = this.hero.getX() + 1;
-            const nextY = currentPosition.y;
-            if (this.canMoveToNextPosition(nextX, nextY)) {
-                this.hero.setX(nextX);
-            }
+            this.updateHeroPosition(this.hero.getX() + 1, currentPosition.y);
+        }
+
+        // Monsters step
+        const bird = this.monsters[0];
+        const neighbors = this.map.getNeighbors(bird.getCurrentTile());
+        bird.update(neighbors);
+        // bird.tryMove(this.map.getTextureByPosition(x, y))
+    }
+
+    updateHeroPosition(x, y) {
+        const nextTile = this.getNextPosition(x, y);
+        if (nextTile) {
+            this.hero.tryMove(nextTile);
         }
     }
 
-    canMoveToNextPosition(x, y) {
-        const texture = this.map.getTextureByPosition(x, y);
-        return texture && texture.canPass() || false;
+    getNextPosition(x, y) {
+        const t = this.map.getTextureByPosition(x, y);
+        return t && t.canPass() ? t : null;
     }
 }

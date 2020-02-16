@@ -34,6 +34,6 @@ class App {
 }
 
 // const util = new Util();
-const settings = new Settings(9, 4, 64);
+const settings = new Settings(12, 4, 64);
 const game = new Game(settings, 'sprite-sheet.png');
 new App(game);

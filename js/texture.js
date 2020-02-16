@@ -4,29 +4,34 @@ export class Texture extends Coordinate {
     constructor(coords, sprite, passable) {
         super(coords);
 
+        let monster = null;
+        let player = null;
+
+        this.setMonster = (value) => monster = value;
+        this.getMonster = () => monster;
+
+        this.setPlayer = (value) => player = value;
+        this.getPlayer = () => player;
+
         this.getSprite = () => sprite;
-        this.canPass = () => passable;
+        this.canPass = () => passable && !monster && !player;
     }
 
-    matchWithPosition(x, y) {
-        return this.getX() === x && this.getY() === y;
-    }
-}
-
-export class Hero extends Texture {
-    constructor(coords) {
-        super(coords, 0, false);
+    dist(goal) {
+        const dx = Math.abs(this.getX() - goal.getX());
+        const dy = Math.abs(this.getY() - goal.getY());
+        return dx + dy;
     }
 }
 
 export class Wall extends Texture {
     constructor(coords) {
-        super(coords, 3, true);
+        super(coords, 3, false);
     }
 }
 
 export class Floor extends Texture {
     constructor(coords) {
-        super(coords, 2, false);
+        super(coords, 2, true);
     }
 }

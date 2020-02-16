@@ -1,56 +1,73 @@
 import {Floor, Wall} from "./texture.js";
+import {Util} from "./util.js";
 
 export class Map {
-    constructor(settings, util) {
-        this.util = util;
+    constructor(settings) {
+        this.textures = [];
+        this.texturesMap = [];
 
-        const textures = this.initMap(settings);
+        this.initTextures(settings);
 
         // Methods
-        this.getTextures = () => textures;
-        this.getTextureByPosition = (x, y) => textures.find(t => t.matchWithPosition(x, y));
+        this.getTextures = () => this.textures;
+        this.getTextureByPosition = (x, y) => {
+            // return this.textures.find(t => t.matchWithPosition(x, y));
+            return this.texturesMap[x][y] || undefined;
+        };
+
+        this.randomPassableTexture = () => {
+            return Util.tryTo('get random passable tile', () => {
+                const x = Util.randomRange(0, settings.getCount());
+                const y = Util.randomRange(0, settings.getCount());
+                const t = this.getTextureByPosition(x, y);
+                return t && t.canPass() && !t.getMonster() ? t : null;
+            });
+        };
     }
 
-    initMap(settings) {
-        const textures = [];
+    initTextures(settings) {
         const count = settings.getCount();
         for (let i = 0; i < count; i++) {
+            this.texturesMap[i] = [];
             for (let j = 0; j < count; j++) {
                 const texture = this.initTexture(i, j, count);
-                textures.push(texture);
+                this.textures.push(texture);
+                this.texturesMap[i][j] = texture;
             }
         }
-
-        return textures;
     }
 
     initTexture(x, y, count) {
         const coords = { x, y };
-        // TODO: decide
-        const isWall = Math.random() < 0.3 || !this.inBounds(x, y, count);
-        return isWall ? new Wall(coords) : new Floor(coords);
+
+        if (this.isFence(x, y, count)) {
+            return new Wall(coords);
+        }
+
+        return Math.random() < 0.3 ? new Wall(coords) : new Floor(coords);
     }
 
-    inBounds(x, y, count) {
-        return x > 0 && y > 0 && x < count - 1 && y < count - 1;
+    /**
+     * 0 < x < count
+     *
+     * W | W | W | W
+     * W | F | F | W
+     * W | F | F | W
+     * W | W | W | W
+     */
+    isFence(x, y, count) {
+        const isInside = x > 0 && y > 0 && x < count - 1 && y < count - 1;
+        return !isInside;
     }
 
-
-    // todo: edit
-   /* getTile(x, y) {
-        return this.inBounds(x, y) ? this.tiles[x][y] : new Wall({ x, y });
-    }*/
-
-
-    /*randomPassableTile() {
-        let tile;
-        this.util.tryTo('get random passable tile', () => {
-            let x = this.util.randomRange(0, this.settings.numTiles - 1);
-            let y = this.util.randomRange(0, this.settings.numTiles - 1);
-            tile = this.getTile(x, y);
-            // return tile.getPassable() && !tile.monster;
-            return tile.getPassable();
-        });
-        return tile;
-    }*/
+    getNeighbors(tile) {
+        const x = tile.getX();
+        const y = tile.getY();
+        return [
+            this.texturesMap[x][y - 1],
+            this.texturesMap[x][y + 1],
+            this.texturesMap[x - 1][y],
+            this.texturesMap[x + 1][y],
+        ].filter(t => t.canPass());
+    }
 }
