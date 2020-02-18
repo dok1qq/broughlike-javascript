@@ -3,19 +3,21 @@ import {Util} from "./util.js";
 
 export class Monster extends Texture {
     constructor(tile, sprite, hp, player) {
-        super({ x: tile.getX(), y: tile.getY() }, sprite, false);
+        super({ x: tile.getX(), y: tile.getY() }, sprite, true);
         this.currentTile = null;
         this.player = player;
         this.dead = false;
         this.hp = hp;
+        this.isHero = false;
+
         this.move(tile);
 
         this.getX = () => this.currentTile.getX();
         this.getY = () => this.currentTile.getY();
     }
 
-    getHp() {
-        return this.hp;
+    getPlayer() {
+        return this.player;
     }
 
     isDead() {
@@ -26,14 +28,23 @@ export class Monster extends Texture {
         return this.currentTile;
     }
 
+    getHp() {
+        return this.hp;
+    }
+
     tryMove(tile){
         if (!tile.canPass()){
             return false;
         }
 
-        if(!tile.getMonster()){
+        if (!tile.getMonster()){
             this.move(tile);
         }
+
+        if (this.isHero !== tile.getMonster().isHero) {
+            tile.getMonster().hit(1);
+        }
+
         return true;
     }
 
@@ -44,10 +55,6 @@ export class Monster extends Texture {
 
         this.currentTile = tile;
         tile.setMonster(this);
-    }
-
-    getHp() {
-        return this.hp;
     }
 
     update(neighbors) {
@@ -69,12 +76,25 @@ export class Monster extends Texture {
 
         this.tryMove(first);
     }
+
+    hit(damage) {
+        this.hp -= damage;
+        if (this.hp <= 0) {
+            this.die();
+        }
+    }
+
+    die() {
+        this.dead = true;
+        this.currentTile.setMonster(null);
+        this.setSprite(1);
+    }
 }
 
 export class Hero extends Monster {
     constructor(tile) {
-        super(tile, 0, 3);
-        this.setPlayer(this);
+        super(tile, 0, 3, null);
+        this.isHero = true;
     }
 }
 

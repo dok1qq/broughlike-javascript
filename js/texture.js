@@ -4,17 +4,14 @@ export class Texture extends Coordinate {
     constructor(coords, sprite, passable) {
         super(coords);
 
-        let monster = null;
-        let player = null;
+        this.monster = null;
 
-        this.setMonster = (value) => monster = value;
-        this.getMonster = () => monster;
-
-        this.setPlayer = (value) => player = value;
-        this.getPlayer = () => player;
+        this.setMonster = (value) => this.monster = value;
+        this.getMonster = () => this.monster;
 
         this.getSprite = () => sprite;
-        this.canPass = () => passable && !monster && !player;
+        this.setSprite = (value) => sprite = value;
+        this.canPass = () => passable;
     }
 
     dist(goal) {
