@@ -1,15 +1,21 @@
 import {Texture} from "./texture.js";
+import {Util} from "./util.js";
 
 export class Monster extends Texture {
     constructor(tile, sprite, hp, player) {
         super({ x: tile.getX(), y: tile.getY() }, sprite, false);
         this.currentTile = null;
         this.player = player;
+        this.dead = false;
         this.hp = hp;
         this.move(tile);
 
         this.getX = () => this.currentTile.getX();
         this.getY = () => this.currentTile.getY();
+    }
+
+    isDead() {
+        return this.dead;
     }
 
     getCurrentTile() {
@@ -57,11 +63,6 @@ export class Monster extends Texture {
                 return aDist - bDist;
             })[0];
 
-        /*return {
-            x: first.getX() - this.currentTile.getX(),
-            y: first.getY() - this.currentTile.getY(),
-        };*/
-        // return first;
         this.tryMove(first);
     }
 }
@@ -101,4 +102,10 @@ export class Jester extends Monster {
     constructor(tile, player){
         super(tile, 8, 2, player);
     }
+}
+
+const MONSTERS = [Bird, Snake, Tank, Eater, Jester];
+
+export function getRandomMonster() {
+    return Util.shuffle(MONSTERS).pop();
 }

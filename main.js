@@ -1,13 +1,11 @@
 import {Game} from "./js/game.js";
 import {Settings} from "./js/settings.js";
-// import {Util} from "./js/util.js";
 
 class App {
-    constructor(game) {
-
-        this.game = game;
-
-
+    constructor() {
+        const level = 1;
+        const settings = new Settings(12, 4, 64);
+        this.game = new Game(settings, 'sprite-sheet.png', level);
 
         this.addHtmlListener();
     }
@@ -32,8 +30,4 @@ class App {
     }
 
 }
-
-// const util = new Util();
-const settings = new Settings(12, 4, 64);
-const game = new Game(settings, 'sprite-sheet.png');
-new App(game);
+new App();

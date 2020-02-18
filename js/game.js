@@ -1,10 +1,11 @@
 import {Map} from "./map.js";
 import {Renderer} from "./renderer.js";
 import {SpriteSheet} from "./sprite-sheet.js";
-import {Bird, Hero} from "./monster.js";
+import {Hero, getRandomMonster} from "./monster.js";
+import {Util} from "./util.js";
 
 export class Game {
-    constructor(settings, path) {
+    constructor(settings, path, level) {
         const spriteSheet = new SpriteSheet(path, 16);
 
         // Init map
@@ -15,29 +16,24 @@ export class Game {
         this.hero = new Hero(startTexture);
 
         // Init monsters
-        // TODO: number depend from level
-        this.monsters = [];
-        const birdPosition = this.map.randomPassableTexture();
-
-        const bird = new Bird(birdPosition, this.hero);
-        this.monsters.push(bird);
-
-        /*setInterval(() => {
-            const bird = this.monsters[0];
-            const neighbors = this.map.getNeighbors(bird.getCurrentTile());
-            bird.update(neighbors);
-            this.draw();
-        }, 1000);*/
-
-
-        // Init other stuff
-
-
+        this.initMonsters(level);
 
 
         // Render things
         this.renderer = new Renderer(settings, spriteSheet);
         this.draw();
+    }
+
+    initMonsters(level) {
+        this.monsters = [];
+
+        // Maybe need only level + 1
+        const monstersCount = Util.randomRange(1, level + 1);
+        for (let i = 0; i < monstersCount; i++) {
+            const freePoint = this.map.randomPassableTexture();
+            const monster = getRandomMonster();
+            this.monsters.push(new monster(freePoint, this.hero));
+        }
     }
 
     draw() {
@@ -87,10 +83,23 @@ export class Game {
         }
 
         // Monsters step
-        const bird = this.monsters[0];
-        const neighbors = this.map.getNeighbors(bird.getCurrentTile());
-        bird.update(neighbors);
-        // bird.tryMove(this.map.getTextureByPosition(x, y))
+        this.tick();
+    }
+
+    /**
+     * Monsters update function
+     */
+    tick() {
+        for (let k = this.monsters.length - 1; k>=0 ; k--) {
+            const monster = this.monsters[k];
+
+            if (monster.isDead()){
+                this.monsters.splice(k,1);
+            } else {
+                const neighbors = this.map.getNeighbors(monster.getCurrentTile());
+                monster.update(neighbors);
+            }
+        }
     }
 
     updateHeroPosition(x, y) {
