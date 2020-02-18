@@ -14,6 +14,10 @@ export class Monster extends Texture {
         this.getY = () => this.currentTile.getY();
     }
 
+    getHp() {
+        return this.hp;
+    }
+
     isDead() {
         return this.dead;
     }

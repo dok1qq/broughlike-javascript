@@ -35,3 +35,34 @@ export class Floor extends Texture {
         super(coords, 2, true);
     }
 }
+
+export class Hp extends Texture {
+    constructor(coords) {
+        super(coords, 9, false);
+
+        this.tile = null;
+        this.index = 0;
+
+        this.getX = () => {
+            if (!this.tile) { return 0; }
+            return this.tile.getX() + (this.index % 3) * (5 / 16);
+        };
+        this.getY = () => {
+            if (!this.tile) { return 0; }
+            return this.tile.getY() - Math.floor(this.index / 3) * (5 / 16);
+        };
+    }
+
+    setCurrentIndex(value) {
+        this.index = value;
+    }
+
+    setCurrentTile(value) {
+        this.tile = value;
+    }
+
+    update(tile, index) {
+        this.setCurrentTile(tile);
+        this.setCurrentIndex(index);
+    }
+}

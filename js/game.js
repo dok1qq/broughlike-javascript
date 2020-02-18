@@ -3,6 +3,7 @@ import {Renderer} from "./renderer.js";
 import {SpriteSheet} from "./sprite-sheet.js";
 import {Hero, getRandomMonster} from "./monster.js";
 import {Util} from "./util.js";
+import {Hp} from "./texture.js";
 
 export class Game {
     constructor(settings, path, level) {
@@ -14,6 +15,9 @@ export class Game {
         // Init hero
         const startTexture = this.map.randomPassableTexture();
         this.hero = new Hero(startTexture);
+
+        // Init hp
+        this.hpTexture = new Hp({x: 0, y: 0});
 
         // Init monsters
         this.initMonsters(level);
@@ -48,10 +52,20 @@ export class Game {
         const monstersLength = this.monsters.length;
         for (let i = 0; i < monstersLength; i++) {
             this.renderer.draw(this.monsters[i]);
+            this.drawHp(this.monsters[i])
         }
 
         // Draw player
         this.renderer.draw(this.hero);
+        this.drawHp(this.hero);
+    }
+
+    drawHp(monster) {
+        const count = monster.getHp();
+        for (let i = 0; i < count; i++) {
+            this.hpTexture.update(monster, i);
+            this.renderer.draw(this.hpTexture);
+        }
     }
 
     update(key) {
