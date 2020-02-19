@@ -110,8 +110,8 @@ export class Game {
             if (monster.isDead()){
                 this.monsters.splice(k,1);
             } else {
-                const neighbors = this.map.getNeighbors(monster.getCurrentTile());
-                monster.update(neighbors);
+                // TODO: bad stuff
+                monster.doStuff(this.map.getNeighbors.bind(this.map));
             }
         }
     }

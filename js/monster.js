@@ -9,6 +9,8 @@ export class Monster extends Texture {
         this.dead = false;
         this.hp = hp;
         this.isHero = false;
+        this.attackedThisTurn = false;
+        this.stunned = false;
 
         this.move(tile);
 
@@ -32,7 +34,7 @@ export class Monster extends Texture {
         return this.hp;
     }
 
-    tryMove(tile){
+    tryMove(tile) {
         if (!tile.canPass()){
             return false;
         }
@@ -42,13 +44,15 @@ export class Monster extends Texture {
         }
 
         if (this.isHero !== tile.getMonster().isHero) {
+            this.attackedThisTurn = true;
+            // tile.getMonster().stunned = true;
             tile.getMonster().hit(1);
         }
 
         return true;
     }
 
-    move(tile){
+    move(tile) {
         if (this.currentTile){
             this.currentTile.setMonster(null);
         }
@@ -57,7 +61,18 @@ export class Monster extends Texture {
         tile.setMonster(this);
     }
 
+    // TODO: don't know yet how to avoid it
+    doStuff(getNeighborsFn) {
+        const neighbors = getNeighborsFn(this.getCurrentTile());
+        this.update(neighbors);
+    }
+
     update(neighbors) {
+        if (this.stunned) {
+            this.stunned = false;
+            return;
+        }
+
         if (!this.currentTile) {
             return;
         }
@@ -108,11 +123,28 @@ export class Snake extends Monster {
     constructor(tile, player) {
         super(tile, 5, 1, player);
     }
+
+    doStuff(getNeighborsFn) {
+        this.attackedThisTurn = false;
+        super.doStuff(getNeighborsFn);
+
+        if (!this.attackedThisTurn) {
+            super.doStuff(getNeighborsFn)
+        }
+    }
 }
 
 export class Tank extends Monster {
     constructor(tile, player) {
         super(tile, 6, 2, player);
+    }
+
+    update(neighbors) {
+        const startedStunned = this.stunned;
+        super.update(neighbors);
+        if(!startedStunned){
+            this.stunned = true;
+        }
     }
 }
 
@@ -120,11 +152,29 @@ export class Eater extends Monster {
     constructor(tile, player) {
         super(tile, 7, 1, player);
     }
+
+    /*doStuff(getNeighborsFn) {
+        this.attackedThisTurn = false;
+        super.doStuff(getNeighborsFn);
+
+        if (!this.attackedThisTurn) {
+            super.doStuff(getNeighborsFn)
+        }
+    }*/
 }
 
 export class Jester extends Monster {
     constructor(tile, player){
         super(tile, 8, 2, player);
+    }
+
+    doStuff(getNeighborsFn) {
+        const neighbors = getNeighborsFn(this.getCurrentTile());
+
+        if (neighbors.length) {
+            const shuffled = Util.shuffle(neighbors);
+            this.tryMove(shuffled[0]);
+        }
     }
 }
 

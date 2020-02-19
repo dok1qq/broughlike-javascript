@@ -44,7 +44,8 @@ export class Map {
             return new Wall(coords);
         }
 
-        return Math.random() < 0.3 ? new Wall(coords) : new Floor(coords);
+        // TODO: make algorithm
+        return Math.random() < 0.2 ? new Wall(coords) : new Floor(coords);
     }
 
     /**
