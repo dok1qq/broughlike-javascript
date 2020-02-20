@@ -20,6 +20,11 @@ export class Renderer {
             const dh = settings.getTileSize();
             context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
         };
+
+        this.drawInfo = () => {
+            context.fillStyle = 'rgba(0, 0, 0, .75)';
+            context.fillRect(0,0, settings.getWidth(), settings.getHeight());
+        }
     }
 
     init(name, contextId, settings) {

@@ -8,5 +8,6 @@ export class SpriteSheet {
         this.sy = () => 0; // Always on top
         this.sWidth = () => size;
         this.sHeight = () => size;
+        this.onLoad = (loadFn) => image.onload = loadFn;
     }
 }

@@ -181,5 +181,5 @@ export class Jester extends Monster {
 const MONSTERS = [Bird, Snake, Tank, Eater, Jester];
 
 export function getRandomMonster() {
-    return Util.shuffle(MONSTERS).pop();
+    return Util.shuffle(MONSTERS)[0];
 }

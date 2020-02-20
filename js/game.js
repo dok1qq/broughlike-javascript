@@ -1,31 +1,19 @@
 import {Map} from "./map.js";
 import {Renderer} from "./renderer.js";
-import {SpriteSheet} from "./sprite-sheet.js";
 import {Hero, getRandomMonster} from "./monster.js";
 import {Util} from "./util.js";
 import {Hp} from "./texture.js";
 
 export class Game {
-    constructor(settings, path, level) {
-        const spriteSheet = new SpriteSheet(path, 16);
-
-        // Init map
-        this.map = new Map(settings);
-
-        // Init hero
-        const startTexture = this.map.randomPassableTexture();
-        this.hero = new Hero(startTexture);
-
-        // Init hp
-        this.hpTexture = new Hp({x: 0, y: 0});
-
-        // Init monsters
-        this.initMonsters(level);
-
-
-        // Render things
+    constructor(settings, spriteSheet) {
+        this.spawnRate = 15;
+        this.spawnCounter = this.spawnRate;
+        this.settings = settings;
         this.renderer = new Renderer(settings, spriteSheet);
-        this.draw();
+
+        spriteSheet.onLoad(this.showTitle.bind(this));
+
+        this.gameState = 'loading';
     }
 
     initMonsters(level) {
@@ -40,7 +28,17 @@ export class Game {
         }
     }
 
+    spawnMonster() {
+        const freePoint = this.map.randomPassableTexture();
+        const monster = getRandomMonster();
+        this.monsters.push(new monster(freePoint, this.hero));
+    }
+
     draw() {
+        if (this.gameState === 'title') {
+            return;
+        }
+
         this.renderer.clear();
 
         const tiles = this.map.getTextures();
@@ -114,6 +112,17 @@ export class Game {
                 monster.doStuff(this.map.getNeighbors.bind(this.map));
             }
         }
+
+        if(this.hero.dead){
+            this.gameState = 'dead';
+        }
+
+        this.spawnCounter--;
+        if (this.spawnCounter <= 0){
+            this.spawnMonster();
+            this.spawnCounter = this.spawnRate;
+            this.spawnRate--;
+        }
     }
 
     updateHeroPosition(x, y) {
@@ -126,5 +135,35 @@ export class Game {
     getNextPosition(x, y) {
         const t = this.map.getTextureByPosition(x, y);
         return t && t.canPass() ? t : null;
+    }
+
+    startGame(level, startingHp, numLevels) {
+        this.startLevel(startingHp, level);
+
+        this.gameState = 'running';
+    }
+
+    showTitle() {
+        this.renderer.drawInfo();
+        this.gameState = 'title';
+    }
+
+    startLevel(playerHp, level) {
+        // Init map
+        this.map = new Map(this.settings);
+
+        // Init hero
+        const startTexture = this.map.randomPassableTexture();
+        this.hero = new Hero(startTexture);
+        this.hero.hp = playerHp;
+
+        // Init hp
+        this.hpTexture = new Hp({x: 0, y: 0});
+
+        // Init monsters
+        this.initMonsters(level);
+
+        // Render things
+        this.draw();
     }
 }
