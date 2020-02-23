@@ -49,10 +49,12 @@ export class Hp extends Texture {
         this.getX = () => {
             if (!this.tile) { return 0; }
             return this.tile.getX() + (this.index % 3) * (5 / 16);
+            // return this.tile.getDisplayX() + (this.index % 3) * (5 / 16);
         };
         this.getY = () => {
             if (!this.tile) { return 0; }
             return this.tile.getY() - Math.floor(this.index / 3) * (5 / 16);
+            // return this.tile.getDisplayY() - Math.floor(this.index / 3) * (5 / 16);
         };
     }
 
@@ -73,13 +75,9 @@ export class Hp extends Texture {
 export class Teleport extends Texture {
     constructor(coords) {
         super(coords, 10, true);
-
-        this.tile = null;
     }
 
     update(tile) {
-        this.tile = tile;
-
         this.setX(tile.getX());
         this.setY(tile.getY());
     }

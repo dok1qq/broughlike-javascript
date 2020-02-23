@@ -68,7 +68,11 @@ export class Game {
             }
 
             this.renderer.draw(monster);
-            this.drawHp(monster)
+            this.drawHp(monster);
+
+            // Update monster animate position
+            // monster.offsetX -= Math.sign(monster.offsetX) * (1/8);
+            // monster.offsetY -= Math.sign(monster.offsetY) * (1/8);
         }
 
         // Draw player

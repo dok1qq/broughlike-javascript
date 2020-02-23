@@ -4,14 +4,23 @@ import {Util} from "./util.js";
 export class Monster extends Texture {
     constructor(tile, sprite, hp, player) {
         super({ x: tile.getX(), y: tile.getY() }, sprite, true);
+        // Game monster main stuff
         this.currentTile = null;
         this.player = player;
         this.dead = false;
         this.hp = hp;
         this.isHero = false;
+
+        // Features
         this.attackedThisTurn = false;
         this.stunned = false;
+
+        // Teleport
         this.teleportCounter = 2;
+
+        // Animation
+        this.offsetX = 0;
+        this.offsetY = 0;
 
         this.move(tile);
 
@@ -39,6 +48,14 @@ export class Monster extends Texture {
         return this.hp;
     }
 
+    getDisplayX(){
+        return this.currentTile.getX() + this.offsetX;
+    }
+
+    getDisplayY(){
+        return this.currentTile.getY() + this.offsetY;
+    }
+
     tryMove(tile) {
         if (!tile.canPass()){
             return false;
@@ -52,6 +69,9 @@ export class Monster extends Texture {
             this.attackedThisTurn = true;
             // tile.getMonster().stunned = true;
             tile.getMonster().hit(1);
+
+            this.offsetX = (tile.getX() - this.currentTile.getX()) / 2;
+            this.offsetY = (tile.getY() - this.currentTile.getY()) / 2;
         }
 
         return true;
@@ -60,6 +80,8 @@ export class Monster extends Texture {
     move(tile) {
         if (this.currentTile){
             this.currentTile.setMonster(null);
+            this.offsetX = this.currentTile.getX() - tile.getX();
+            this.offsetY = this.currentTile.getY() - tile.getY();
         }
 
         this.currentTile = tile;
