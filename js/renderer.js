@@ -24,7 +24,20 @@ export class Renderer {
         this.drawInfo = () => {
             context.fillStyle = 'rgba(0, 0, 0, .75)';
             context.fillRect(0,0, settings.getWidth(), settings.getHeight());
-        }
+        };
+
+        this.drawText = (text, size, centered, textY, color) => {
+            context.fillStyle = color;
+            context.font = size + "px monospace";
+            let textX;
+            if (centered) {
+                textX = (settings.getWidth() - context.measureText(text).width) / 2;
+            } else {
+                textX = settings.getWidth() - settings.getUiWidth() * settings.getTileSize() + 25;
+            }
+
+            context.fillText(text, textX, textY);
+        };
     }
 
     init(name, contextId, settings) {

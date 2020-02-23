@@ -1,12 +1,10 @@
-import {Floor, Wall} from "./texture.js";
+import {Floor, Wall, Exit} from "./texture.js";
 import {Util} from "./util.js";
 
 export class Map {
     constructor(settings) {
         this.textures = [];
         this.texturesMap = [];
-
-        this.initTextures(settings);
 
         // Methods
         this.getTextures = () => this.textures;
@@ -17,12 +15,14 @@ export class Map {
 
         this.randomPassableTexture = () => {
             return Util.tryTo('get random passable tile', () => {
-                const x = Util.randomRange(0, settings.getCount());
-                const y = Util.randomRange(0, settings.getCount());
+                const x = Util.randomRange(0, settings.getCount() - 1);
+                const y = Util.randomRange(0, settings.getCount() - 1);
                 const t = this.getTextureByPosition(x, y);
                 return t && t.canPass() && !t.getMonster() ? t : null;
             });
         };
+
+        this.initTextures(settings);
     }
 
     initTextures(settings) {
@@ -35,6 +35,15 @@ export class Map {
                 this.texturesMap[i][j] = texture;
             }
         }
+
+        // Init Exit
+        const exitTexture = this.randomPassableTexture();
+        const exit = new Exit({x: exitTexture.getX(), y: exitTexture.getY()});
+
+        const index = this.textures.findIndex(t => t.getX() === exit.getX() && t.getY() === exit.getY());
+        this.textures.splice(index, 1, exit);
+        this.texturesMap[exitTexture.getX()][exitTexture.getY()] = exit;
+
     }
 
     initTexture(x, y, count) {

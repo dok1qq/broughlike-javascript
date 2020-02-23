@@ -2,25 +2,30 @@ import {Map} from "./map.js";
 import {Renderer} from "./renderer.js";
 import {Hero, getRandomMonster} from "./monster.js";
 import {Util} from "./util.js";
-import {Hp} from "./texture.js";
+import {Hp, Teleport} from "./texture.js";
 
 export class Game {
-    constructor(settings, spriteSheet) {
+    constructor(settings, spriteSheet, level, playerHp, numLevels) {
+        this.playerHp = playerHp;
+        this.level = level;
+        this.numLevels = numLevels;
         this.spawnRate = 15;
         this.spawnCounter = this.spawnRate;
         this.settings = settings;
         this.renderer = new Renderer(settings, spriteSheet);
+        this.monsters = [];
 
         spriteSheet.onLoad(this.showTitle.bind(this));
 
         this.gameState = 'loading';
     }
 
-    initMonsters(level) {
+    initMonsters() {
         this.monsters = [];
 
         // Maybe need only level + 1
-        const monstersCount = Util.randomRange(1, level + 1);
+        const monstersCount = Util.randomRange(1, this.level);
+        console.log(this.level, ' | ', monstersCount);
         for (let i = 0; i < monstersCount; i++) {
             const freePoint = this.map.randomPassableTexture();
             const monster = getRandomMonster();
@@ -49,13 +54,23 @@ export class Game {
 
         const monstersLength = this.monsters.length;
         for (let i = 0; i < monstersLength; i++) {
-            this.renderer.draw(this.monsters[i]);
-            this.drawHp(this.monsters[i])
+            const monster = this.monsters[i];
+            if (monster.getTeleportCounter() > 0) {
+                this.teleportTexture.update(monster);
+                this.renderer.draw(this.teleportTexture);
+                continue;
+            }
+
+            this.renderer.draw(monster);
+            this.drawHp(monster)
         }
 
         // Draw player
         this.renderer.draw(this.hero);
         this.drawHp(this.hero);
+
+        // Game info
+        this.renderer.drawText(`Level: ${this.level}`, 30, false, 40, 'violet');
     }
 
     drawHp(monster) {
@@ -96,6 +111,16 @@ export class Game {
 
         // Monsters step
         this.tick();
+
+        // Check next level or end game
+        if (this.hero.teleported) {
+            if (this.level === this.numLevels) {
+                this.showTitle();
+            } else {
+                this.level++;
+                this.startLevel();
+            }
+        }
     }
 
     /**
@@ -118,7 +143,7 @@ export class Game {
         }
 
         this.spawnCounter--;
-        if (this.spawnCounter <= 0){
+        if (this.spawnCounter <= 0) {
             this.spawnMonster();
             this.spawnCounter = this.spawnRate;
             this.spawnRate--;
@@ -137,8 +162,8 @@ export class Game {
         return t && t.canPass() ? t : null;
     }
 
-    startGame(level, startingHp, numLevels) {
-        this.startLevel(startingHp, level);
+    startGame() {
+        this.startLevel();
 
         this.gameState = 'running';
     }
@@ -146,22 +171,28 @@ export class Game {
     showTitle() {
         this.renderer.drawInfo();
         this.gameState = 'title';
+
+        this.renderer.drawText("SUPER", 40, true, 300, "white");
+        this.renderer.drawText("BROUGH BROS.", 70, true, 150, "white");
     }
 
-    startLevel(playerHp, level) {
+    startLevel() {
         // Init map
         this.map = new Map(this.settings);
 
         // Init hero
         const startTexture = this.map.randomPassableTexture();
         this.hero = new Hero(startTexture);
-        this.hero.hp = playerHp;
+        this.hero.hp = this.playerHp;
 
         // Init hp
         this.hpTexture = new Hp({x: 0, y: 0});
 
+        // Init teleport Texture
+        this.teleportTexture = new Teleport({x: 0, y: 0});
+
         // Init monsters
-        this.initMonsters(level);
+        this.initMonsters();
 
         // Render things
         this.draw();

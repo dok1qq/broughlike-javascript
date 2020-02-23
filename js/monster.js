@@ -11,11 +11,16 @@ export class Monster extends Texture {
         this.isHero = false;
         this.attackedThisTurn = false;
         this.stunned = false;
+        this.teleportCounter = 2;
 
         this.move(tile);
 
         this.getX = () => this.currentTile.getX();
         this.getY = () => this.currentTile.getY();
+    }
+
+    getTeleportCounter() {
+        return this.teleportCounter
     }
 
     getPlayer() {
@@ -59,6 +64,7 @@ export class Monster extends Texture {
 
         this.currentTile = tile;
         tile.setMonster(this);
+        tile.stepOn(this);
     }
 
     // TODO: don't know yet how to avoid it
@@ -68,7 +74,9 @@ export class Monster extends Texture {
     }
 
     update(neighbors) {
-        if (this.stunned) {
+        this.teleportCounter--;
+
+        if (this.stunned || this.teleportCounter > 0) {
             this.stunned = false;
             return;
         }
@@ -110,6 +118,7 @@ export class Hero extends Monster {
     constructor(tile) {
         super(tile, 0, 3, null);
         this.isHero = true;
+        this.teleportCounter = 0;
     }
 }
 
@@ -173,8 +182,27 @@ export class Jester extends Monster {
 
         if (neighbors.length) {
             const shuffled = Util.shuffle(neighbors);
-            this.tryMove(shuffled[0]);
+            this.update(shuffled);
         }
+    }
+
+    update(neighbors) {
+        this.teleportCounter--;
+
+        if (this.stunned || this.teleportCounter > 0) {
+            this.stunned = false;
+            return;
+        }
+
+        if (!this.currentTile) {
+            return;
+        }
+
+        if (!neighbors.length) {
+            return;
+        }
+
+        this.tryMove(neighbors[0]);
     }
 }
 

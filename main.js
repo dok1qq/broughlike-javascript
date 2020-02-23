@@ -11,7 +11,7 @@ class App {
 
         const settings = new Settings(12, 4, 64);
         const spriteSheet = new SpriteSheet('sprite-sheet.png', 16);
-        this.game = new Game(settings, spriteSheet);
+        this.game = new Game(settings, spriteSheet, this.level, this.startingHp, this.numLevels);
 
         this.addHtmlListener();
     }
@@ -19,7 +19,7 @@ class App {
     addHtmlListener() {
         document.querySelector('html').onkeypress = (e) => {
             if (this.game.gameState === 'title') {
-                this.game.startGame(this.level, this.startingHp, this.numLevels);
+                this.game.startGame();
                 return;
             }
 

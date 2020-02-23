@@ -5,6 +5,7 @@ export class Texture extends Coordinate {
         super(coords);
 
         this.monster = null;
+        this.teleported = false;
 
         this.setMonster = (value) => this.monster = value;
         this.getMonster = () => this.monster;
@@ -18,6 +19,10 @@ export class Texture extends Coordinate {
         const dx = Math.abs(this.getX() - goal.getX());
         const dy = Math.abs(this.getY() - goal.getY());
         return dx + dy;
+    }
+
+    stepOn() {
+        //
     }
 }
 
@@ -61,5 +66,32 @@ export class Hp extends Texture {
     update(tile, index) {
         this.setCurrentTile(tile);
         this.setCurrentIndex(index);
+    }
+}
+
+export class Teleport extends Texture {
+    constructor(coords) {
+        super(coords, 10, true);
+
+        this.tile = null;
+    }
+
+    update(tile) {
+        this.tile = tile;
+
+        this.setX(tile.getX());
+        this.setY(tile.getY());
+    }
+}
+
+export class Exit extends Texture {
+    constructor(coords) {
+        super(coords, 11, true);
+    }
+
+    stepOn(monster){
+        if (monster.isHero) {
+            monster.teleported = true;
+        }
     }
 }
