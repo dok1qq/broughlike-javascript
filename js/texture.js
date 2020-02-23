@@ -6,6 +6,7 @@ export class Texture extends Coordinate {
 
         this.monster = null;
         this.teleported = false;
+        this.treasure = false;
 
         this.setMonster = (value) => this.monster = value;
         this.getMonster = () => this.monster;
@@ -93,5 +94,18 @@ export class Exit extends Texture {
         if (monster.isHero) {
             monster.teleported = true;
         }
+    }
+}
+
+export class Treasure extends Texture {
+    constructor(coords) {
+        super(coords, 12, true);
+    }
+
+    update(tile) {
+        this.tile = tile;
+
+        this.setX(tile.getX());
+        this.setY(tile.getY());
     }
 }

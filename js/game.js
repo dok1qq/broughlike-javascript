@@ -2,7 +2,7 @@ import {Map} from "./map.js";
 import {Renderer} from "./renderer.js";
 import {Hero, getRandomMonster} from "./monster.js";
 import {Util} from "./util.js";
-import {Hp, Teleport} from "./texture.js";
+import {Hp, Teleport, Treasure} from "./texture.js";
 
 export class Game {
     constructor(settings, spriteSheet, level, playerHp, numLevels) {
@@ -14,6 +14,7 @@ export class Game {
         this.settings = settings;
         this.renderer = new Renderer(settings, spriteSheet);
         this.monsters = [];
+        this.score = 0;
 
         spriteSheet.onLoad(this.showTitle.bind(this));
 
@@ -50,6 +51,11 @@ export class Game {
         const tilesLength = tiles.length;
         for (let i = 0; i < tilesLength; i++) {
             this.renderer.draw(tiles[i]);
+
+            if (tiles[i].treasure) {
+                this.treasureTexture.update(tiles[i]);
+                this.renderer.draw(this.treasureTexture);
+            }
         }
 
         const monstersLength = this.monsters.length;
@@ -71,6 +77,7 @@ export class Game {
 
         // Game info
         this.renderer.drawText(`Level: ${this.level}`, 30, false, 40, 'violet');
+        this.renderer.drawText(`Score: ${this.score}`, 30, false, 70, 'violet');
     }
 
     drawHp(monster) {
@@ -112,9 +119,18 @@ export class Game {
         // Monsters step
         this.tick();
 
+
+        // Collect treasure
+        if (this.hero.currentTile.treasure) {
+            this.score++;
+            this.hero.currentTile.treasure = false;
+            this.spawnMonster();
+        }
+
         // Check next level or end game
         if (this.hero.teleported) {
             if (this.level === this.numLevels) {
+                addScore(this.score, true);
                 this.showTitle();
             } else {
                 this.level++;
@@ -139,6 +155,7 @@ export class Game {
         }
 
         if(this.hero.dead){
+            addScore(this.score, false);
             this.gameState = 'dead';
         }
 
@@ -165,6 +182,7 @@ export class Game {
     startGame() {
         this.startLevel();
 
+        this.score = 0;
         this.gameState = 'running';
     }
 
@@ -174,6 +192,8 @@ export class Game {
 
         this.renderer.drawText("SUPER", 40, true, 300, "white");
         this.renderer.drawText("BROUGH BROS.", 70, true, 150, "white");
+
+        this.drawScores();
     }
 
     startLevel() {
@@ -191,10 +211,83 @@ export class Game {
         // Init teleport Texture
         this.teleportTexture = new Teleport({x: 0, y: 0});
 
+        // Init treasure
+        this.treasureTexture = new Treasure({x: 0, y: 0});
+
         // Init monsters
         this.initMonsters();
 
         // Render things
         this.draw();
     }
+
+    drawScores() {
+        let scores = getScores();
+        if (scores.length) {
+            this.renderer.drawText(
+                this.rightPad(["RUN","SCORE","TOTAL"]),
+                18,
+                true,
+                350,
+                "white"
+            );
+
+            const newestScore = scores.pop();
+            scores.sort(function(a,b){
+                return b.totalScore - a.totalScore;
+            });
+            scores.unshift(newestScore);
+
+            for (let i=0; i < Math.min(10,scores.length); i++) {
+                const scoreText = this.rightPad([scores[i].run, scores[i].score, scores[i].totalScore]);
+                this.renderer.drawText(
+                    scoreText,
+                    18,
+                    true,
+                    350 + 24 + i * 24,
+                    i === 0 ? "aqua" : "violet"
+                );
+            }
+        }
+    }
+
+    rightPad (textArray) {
+        let finalText = "";
+        textArray.forEach(text => {
+            text += "";
+            for(let i=text.length;i<10;i++){
+                text += " ";
+            }
+            finalText += text;
+        });
+        return finalText;
+    }
+}
+
+
+// TODO: scored stuff in Score class
+function getScores(){
+    if ( localStorage["scores"]) {
+        return JSON.parse(localStorage["scores"]);
+    } else {
+        return [];
+    }
+}
+
+function addScore(score, won){
+    const scores = getScores();
+    const scoreObject = { score, run: 1, totalScore: score, active: won };
+    const lastScore = scores.pop();
+
+    if (lastScore) {
+        if (lastScore.active) {
+            scoreObject.run = lastScore.run + 1;
+            scoreObject.totalScore += lastScore.totalScore;
+        } else {
+            scores.push(lastScore);
+        }
+    }
+    scores.push(scoreObject);
+
+    localStorage["scores"] = JSON.stringify(scores);
 }

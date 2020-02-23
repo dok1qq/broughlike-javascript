@@ -23,6 +23,7 @@ export class Map {
         };
 
         this.initTextures(settings);
+        this.initTreasure();
     }
 
     initTextures(settings) {
@@ -44,6 +45,13 @@ export class Map {
         this.textures.splice(index, 1, exit);
         this.texturesMap[exitTexture.getX()][exitTexture.getY()] = exit;
 
+    }
+
+    initTreasure() {
+        for (let i=0; i<3; i++) {
+            const treasureTexture = this.randomPassableTexture();
+            treasureTexture.treasure = true;
+        }
     }
 
     initTexture(x, y, count) {
