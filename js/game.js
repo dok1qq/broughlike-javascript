@@ -3,12 +3,14 @@ import {Renderer} from "./renderer.js";
 import {Hero, getRandomMonster} from "./monster.js";
 import {Util} from "./util.js";
 import {Hp, Teleport, Treasure} from "./texture.js";
+import {spells} from "./spell.js";
 
 export class Game {
     constructor(settings, spriteSheet, level, playerHp, numLevels) {
         this.playerHp = playerHp;
         this.level = level;
         this.numLevels = numLevels;
+        this.numSpells = 1;
         this.spawnRate = 15;
         this.spawnCounter = this.spawnRate;
         this.settings = settings;
@@ -82,6 +84,11 @@ export class Game {
         // Game info
         this.renderer.drawText(`Level: ${this.level}`, 30, false, 40, 'violet');
         this.renderer.drawText(`Score: ${this.score}`, 30, false, 70, 'violet');
+
+        for (let i=0; i < this.hero.spells.length; i++) {
+            const spellText = `${i+1}) ${this.hero.spells[i]}`;
+            this.renderer.drawText(spellText, 20, false, 110 + i * 40, "aqua");
+        }
     }
 
     drawHp(monster) {
@@ -98,6 +105,7 @@ export class Game {
         const isDown = key === 's';
         const isLeft = key === 'a';
         const isRight = key === 'd';
+        const isSpell = key >= 1 && key <= 9;
 
         const currentPosition = {
             x: this.hero.getX(),
@@ -120,6 +128,10 @@ export class Game {
             this.updateHeroPosition(this.hero.getX() + 1, currentPosition.y);
         }
 
+        if (isSpell) {
+            this.useSpell();
+        }
+
         // Monsters step
         this.tick();
 
@@ -129,6 +141,12 @@ export class Game {
             this.score++;
             this.hero.currentTile.treasure = false;
             this.spawnMonster();
+
+            // Add spells
+            if(this.score % 3 === 0 && this.numSpells < 9){
+                this.numSpells++;
+                this.hero.addSpell();
+            }
         }
 
         // Check next level or end game
@@ -169,6 +187,11 @@ export class Game {
             this.spawnCounter = this.spawnRate;
             this.spawnRate--;
         }
+    }
+
+    useSpell() {
+        const goal = this.map.randomPassableTexture();
+        spells.WOOP(this.hero, goal);
     }
 
     updateHeroPosition(x, y) {

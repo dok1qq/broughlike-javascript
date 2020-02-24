@@ -1,5 +1,6 @@
 import {Texture} from "./texture.js";
 import {Util} from "./util.js";
+import {spells} from "./spell.js";
 
 export class Monster extends Texture {
     constructor(tile, sprite, hp, player) {
@@ -22,10 +23,28 @@ export class Monster extends Texture {
         this.offsetX = 0;
         this.offsetY = 0;
 
+        // Spells
+        this.spells = Util.shuffle(Object.keys(spells));
+
         this.move(tile);
 
         this.getX = () => this.currentTile.getX();
         this.getY = () => this.currentTile.getY();
+    }
+
+    addSpell() {
+        const newSpell = Util.shuffle(Object.keys(spells))[0];
+        this.spells.push(newSpell);
+    }
+
+    castSpell(index) {
+        const spellName = this.spells[index];
+        if (spellName) {
+            delete this.spells[index];
+            spells[spellName]();
+            // playSound("spell");
+            // tick();
+        }
     }
 
     getTeleportCounter() {

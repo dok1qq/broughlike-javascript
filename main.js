@@ -33,6 +33,7 @@ class App {
                     e.key === 's',
                     e.key === 'a',
                     e.key === 'd',
+                    e.key >= 1 && e.key <= 9,
                 ].some(Boolean);
 
                 if (!needUpdate) { return; }
